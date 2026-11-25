@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "matriz.h"
 #include "entrada.h"
 
@@ -59,8 +60,11 @@ void exibirMatriz(const Matriz *m, const char *titulo) {
     printf("\n%s (%dx%d):\n", titulo, m->linhas, m->colunas);
     for (int i = 0; i < m->linhas; i++) {
         printf("| ");
-        for (int j = 0; j < m->colunas; j++)
-            printf("%10.2f ", m->dados[i][j]);
+        for (int j = 0; j < m->colunas; j++) {
+            double valor = m->dados[i][j];
+            if (fabs(valor) < EPSILON) valor = 0.0;   /* evita exibir -0.00 */
+            printf("%10.2f ", valor);
+        }
         printf("|\n");
     }
 }

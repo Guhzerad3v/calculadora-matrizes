@@ -22,6 +22,16 @@ static Operacao exibirMenu(void) {
     return (Operacao) opcao;
 }
 
+static void exibirCadastradas(const Matriz matrizes[], int quantidade) {
+    printf("\n===== MATRIZES CADASTRADAS =====");
+    for (int i = 0; i < quantidade; i++) {
+        char titulo[32];
+        snprintf(titulo, sizeof(titulo), "Matriz %d", i + 1);
+        exibirMatriz(&matrizes[i], titulo);
+    }
+}
+
+/* main apenas coordena o fluxo: cadastro -> menu -> liberacao */
 int main(void) {
     printf("===== CALCULADORA DE MATRIZES =====\n");
 
@@ -35,6 +45,8 @@ int main(void) {
 
     for (int i = 0; i < quantidade; i++)
         matrizes[i] = lerMatriz(i);
+
+    exibirCadastradas(matrizes, quantidade);
 
     Operacao op;
     while ((op = exibirMenu()) != SAIR)

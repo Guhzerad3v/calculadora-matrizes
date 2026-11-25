@@ -1,6 +1,8 @@
 #ifndef MATRIZ_H
 #define MATRIZ_H
 
+#define EPSILON 1e-9   /* tolerancia para considerar um valor como zero */
+
 typedef struct {
     int linhas;
     int colunas;

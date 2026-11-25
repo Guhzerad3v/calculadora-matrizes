@@ -3,8 +3,6 @@
 #include "operacoes.h"
 #include "validacao.h"
 
-#define EPSILON 1e-9
-
 /* sinal = +1 para adicao, -1 para subtracao */
 Matriz somarOuSubtrair(const Matriz *a, const Matriz *b, int sinal) {
     Matriz r = criarMatriz(a->linhas, a->colunas);
@@ -71,16 +69,23 @@ int inverter(const Matriz *m, Matriz *inversa) {
     return 1;
 }
 
-/* A / B = A x B^-1 */
-int dividir(const Matriz *a, const Matriz *b, Matriz *resultado) {
-    if (!ehQuadrada(b) || !podeMultiplicar(a, b)) {
-        printf("\nDivisao impossivel: dimensoes incompativeis.\n");
+/* A / B = A x B^-1. Retorna 0 se a divisao nao puder ser feita. */
+int dividir(const Matriz *a, const Matriz *b, Matriz *resultado, int etapa) {
+    if (!ehQuadrada(b)) {
+        printf("\nErro na etapa %d: a matriz divisora (%dx%d) nao e quadrada.\n",
+               etapa, b->linhas, b->colunas);
+        return 0;
+    }
+    if (!podeMultiplicar(a, b)) {
+        printf("\nErro na etapa %d: dimensoes incompativeis (%dx%d / %dx%d).\n",
+               etapa, a->linhas, a->colunas, b->linhas, b->colunas);
         return 0;
     }
 
     Matriz inversa;
     if (!inverter(b, &inversa)) {
-        printf("\nDivisao impossivel: matriz divisora singular.\n");
+        printf("\nErro na etapa %d: a matriz divisora e singular "
+               "(determinante = 0) e nao possui inversa.\n", etapa);
         return 0;
     }
 
@@ -89,32 +94,51 @@ int dividir(const Matriz *a, const Matriz *b, Matriz *resultado) {
     return 1;
 }
 
+/*
+ * Calcula uma etapa: resultado acumulado (op) proxima matriz.
+ * Retorna 1 em caso de sucesso e 0 se a etapa nao puder ser feita.
+ */
+static int executarEtapa(const Matriz *a, const Matriz *b, Operacao op,
+                         Matriz *novo, int etapa) {
+    switch (op) {
+        case ADICAO:
+        case SUBTRACAO:
+            if (!mesmasDimensoes(a, b)) {
+                printf("\nErro na etapa %d: %s exige matrizes de mesmas dimensoes "
+                       "(%dx%d e %dx%d).\n", etapa,
+                       op == ADICAO ? "a adicao" : "a subtracao",
+                       a->linhas, a->colunas, b->linhas, b->colunas);
+                return 0;
+            }
+            *novo = somarOuSubtrair(a, b, op == ADICAO ? 1 : -1);
+            return 1;
+
+        case MULTIPLICACAO:
+            if (!podeMultiplicar(a, b)) {
+                printf("\nErro na etapa %d: colunas da primeira (%d) diferente "
+                       "das linhas da segunda (%d).\n", etapa, a->colunas, b->linhas);
+                return 0;
+            }
+            *novo = multiplicar(a, b);
+            return 1;
+
+        case DIVISAO:
+            return dividir(a, b, novo, etapa);
+
+        default:
+            return 0;
+    }
+}
+
 void executarOperacao(const Matriz matrizes[], int quantidade, Operacao op) {
     Matriz resultado = copiarMatriz(&matrizes[0]);
 
     for (int i = 1; i < quantidade; i++) {
-        const Matriz *atual = &matrizes[i];
         Matriz novo;
-
-        if ((op == ADICAO || op == SUBTRACAO) && !mesmasDimensoes(&resultado, atual)) {
-            printf("\nOperacao impossivel: dimensoes diferentes.\n");
-            liberarMatriz(&resultado);
+        if (!executarEtapa(&resultado, &matrizes[i], op, &novo, i)) {
+            liberarMatriz(&resultado);   /* libera memoria mesmo em caso de erro */
             return;
         }
-        if (op == MULTIPLICACAO && !podeMultiplicar(&resultado, atual)) {
-            printf("\nMultiplicacao impossivel: dimensoes incompativeis.\n");
-            liberarMatriz(&resultado);
-            return;
-        }
-
-        if (op == ADICAO)              novo = somarOuSubtrair(&resultado, atual, 1);
-        else if (op == SUBTRACAO)      novo = somarOuSubtrair(&resultado, atual, -1);
-        else if (op == MULTIPLICACAO)  novo = multiplicar(&resultado, atual);
-        else if (!dividir(&resultado, atual, &novo)) {
-            liberarMatriz(&resultado);
-            return;
-        }
-
         liberarMatriz(&resultado);
         resultado = novo;
     }
