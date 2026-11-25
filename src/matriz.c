@@ -30,6 +30,14 @@ void liberarMatriz(Matriz *m) {
     m->dados = NULL;
 }
 
+Matriz copiarMatriz(const Matriz *origem) {
+    Matriz copia = criarMatriz(origem->linhas, origem->colunas);
+    for (int i = 0; i < origem->linhas; i++)
+        for (int j = 0; j < origem->colunas; j++)
+            copia.dados[i][j] = origem->dados[i][j];
+    return copia;
+}
+
 Matriz lerMatriz(int indice) {
     char mensagem[64];
 

@@ -9,6 +9,7 @@ typedef struct {
 
 Matriz criarMatriz(int linhas, int colunas);
 void liberarMatriz(Matriz *m);
+Matriz copiarMatriz(const Matriz *origem);
 
 Matriz lerMatriz(int indice);
 void exibirMatriz(const Matriz *m, const char *titulo);

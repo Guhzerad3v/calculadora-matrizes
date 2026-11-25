@@ -1,0 +1,16 @@
+#include "validacao.h"
+
+/* Adicao e subtracao: mesmas dimensoes */
+int mesmasDimensoes(const Matriz *a, const Matriz *b) {
+    return a->linhas == b->linhas && a->colunas == b->colunas;
+}
+
+/* Multiplicacao: colunas da primeira = linhas da segunda */
+int podeMultiplicar(const Matriz *a, const Matriz *b) {
+    return a->colunas == b->linhas;
+}
+
+/* Divisao: a divisora precisa ser quadrada */
+int ehQuadrada(const Matriz *m) {
+    return m->linhas == m->colunas;
+}
